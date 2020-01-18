@@ -1,15 +1,25 @@
 {
-  "name": "low",
+  "name": "lenovo-outlet-scraper",
   "version": "1.0.0",
   "description": "Lenovo Outlet Scraper",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "app": "node ./src/main.js",
+    "test": "mocha --reporter list",
+    "lint": "npx eslint ./src/**/*.js ./test/**/*.js && echo OK",
+    "doc": "rm -rf docs && npx jsdoc src -r -d docs && OK"
   },
   "author": "Jiri Hajek",
   "license": "GPL-3.0",
   "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-google": "^0.14.0",
+    "jsdoc": "^3.6.3",
+    "mocha": "^7.0.0"
+  },
+  "dependencies": {
     "axios": "^0.19.1",
-    "cheerio": "^1.0.0-rc.3"
+    "cheerio": "^1.0.0-rc.3",
+    "yargs": "^15.1.0"
   }
 }
