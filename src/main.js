@@ -1,63 +1,153 @@
+#!/usr/bin/env node
+
 const cheerio = require('cheerio');
 const axios = require('axios').default;
+const argv = require('yargs')
+    .options({
+      'no-out-of-stock': {
+        type: 'boolean',
+        description: 'Ignore products that are out of stock',
+      },
+      'no-refurbished': {
+        type: 'boolean',
+        description: 'Ignore refurbished products',
+      },
+      'no-new': {
+        type: 'boolean',
+        description: 'Ignore products that are new',
+      },
+    }).argv;
 
-const PRODUCTS_PER_PAGE = 8;
+/**
+ * Max number of products per page
+ */
+const MAX_PRODUCTS_PER_PAGE = 8;
 
-async function fun(n, pageAmt) {
-	let db = [];
-	for (let i = 0; i < pageAmt; ++i) {
-		let r = await axios.get(
-			'https://www.lenovo.com/us/en/outletus/laptops/c/LAPTOPS?q=%3Aprice-asc&page=' + i.toString());
+// extract args from argv
+const INCLUDE_OUT_OF_STOCK =
+    ('out-of-stock' in argv && argv['out-of-stock'] === false) ? false : true;
+const INCLUDE_REFURBISHED =
+    ('refurbished' in argv && argv['refurbished'] === false) ? false : true;
+const INCLUDE_NEW =
+    ('new' in argv && argv['new'] === false) ? false : true;
 
-		let $ = cheerio.load(r.data);
-		products = $('div.facetedResults-item');
+/**
+ * Scrape products
+ * @param {number} nPages Number of pages [integer]
+ * @return {Object} Array of product objects
+ */
+async function scrape(nPages) {
+  // product array
+  const db = [];
 
-		for (let i = 0; i < products.length; ++i) {
-			obj = {}
-			$ = cheerio.load(products[i])
-			title = $('.facetedResults-title a').text();
-			obj['title'] = title;
+  // iterate over pages
+  for (let i = 0; i < nPages; ++i) {
+    // get page
+    const r = await axios.get(
+        'https://www.lenovo.com/us/en/outletus/laptops/c/LAPTOPS?q=%3Aprice-asc&page=' + i.toString());
 
-			oldPrice = $('.saleprice.pricingSummary-priceList-value strike').text().trim().substring(1);
-			obj['oldPrice'] = parseFloat(oldPrice.replace(',', ''));
+    // get products
+    let $ = cheerio.load(r.data);
+    products = $('div.facetedResults-item');
 
-			newPrice = $('.pricingSummary-details-final-price').text().trim().substring(1);
-			obj['newPrice'] = parseFloat(newPrice.replace(',', ''));
+    // iterate over products
+    for (let j = 0; j < products.length; ++j) {
+      // temporary product object
+      obj = {};
 
-			youSave = $('.saleprice.pricingSummary-priceList-value[itemprop="youSave"]').text().trim().substring(1);
-			obj['youSave'] = parseFloat(youSave.replace(',', ''));
+      // get product's title and type
+      $ = cheerio.load(products[j]);
+      let title = $('.facetedResults-title a').text();
+      tmp = title.split('-');
+      type = tmp.pop().trim();
+      title = tmp.join('').trim();
 
-			let features = $('.facetedResults-feature-list dl');
-						
-			for (let j = 0; j < features.length; ++j) {
-				$ = cheerio.load(features[j]);
-				param = $('dt').text().trim();
-				val = $('dd').text().trim();
-				obj[param] = val;
-			}
-			db.push(obj)
-		}
-	}
+      obj['title'] = title;
+      obj['type'] = type;
 
-	return db;
+      // get product's status
+      const status = $('.rci-msg').text().trim();
+      obj['status'] = status;
+
+      // handle args
+      if (INCLUDE_NEW === false && type === 'New') {
+        continue;
+      }
+
+      if (INCLUDE_REFURBISHED === false && type === 'Refurbished') {
+        continue;
+      }
+
+      if (INCLUDE_OUT_OF_STOCK === false && status === 'Out of Stock') {
+        continue;
+      }
+
+      // get pricing
+      const oldPrice =
+          $('.saleprice.pricingSummary-priceList-value strike').text().trim();
+      const newPrice =
+          $('.pricingSummary-details-final-price').text().trim();
+      const youSave =
+          $('.saleprice.pricingSummary-priceList-value[itemprop="youSave"]')
+              .text().trim();
+      obj['oldPrice'] = parseFloat(oldPrice.substring(1).replace(',', ''));
+      obj['newPrice'] = parseFloat(newPrice.substring(1).replace(',', ''));
+      obj['youSave'] = parseFloat(youSave.substring(1).replace(',', ''));
+
+      // get product's specs
+      const specs = $('.facetedResults-feature-list dl');
+      for (let l = 0; l < specs.length; ++l) {
+        // extract spec
+        $ = cheerio.load(specs[l]);
+        param = $('dt').text().trim();
+        val = $('dd').text().trim();
+        obj[param] = val;
+      }
+
+      // push product to product array
+      db.push(obj);
+    }
+  }
+
+  return db;
 }
 
+/**
+ * Get number of pages
+ * @return {number} Number of pages [integer]
+ */
+async function getNumberOfPages() {
+  const html = await axios.get(
+      'https://www.lenovo.com/us/en/outletus/laptops/c/LAPTOPS?q=%3Aprice-asc&page=0');
+
+  // get number of products
+  const $ = cheerio.load(html.data);
+  const nProducts = parseInt($('div.totalResults').first().text().trim());
+
+  // calculate ceiling of number of pages
+  const nPages = parseInt(nProducts / MAX_PRODUCTS_PER_PAGE) + 1;
+
+  return nPages;
+}
+
+/**
+ * Main function - get JSON of products and print it to stdout
+ */
 async function main() {
-	let html = await axios.get(
-		'https://www.lenovo.com/us/en/outletus/laptops/c/LAPTOPS?q=%3Aprice-asc&page=0')
+  // get number of pages
+  const nPages = await getNumberOfPages();
 
-			const $ = cheerio.load(html.data);
+  // scrape products
+  const arr = await scrape(nPages);
 
-			n = parseInt($('div.totalResults').first().text().trim());
+  // sort by youSave value
+  arr.sort((lhs, rhs) => rhs.youSave - lhs.youSave);
 
-			pageAmt = parseInt(n / PRODUCTS_PER_PAGE) + 1;
+  // convert to JSON
+  json = JSON.stringify(arr);
 
-			let arr = await fun(n, pageAmt)
-			arr.sort((lhs, rhs) => rhs.youSave - lhs.youSave);
-			for (let i = 0; i < arr.length; ++i) {
-				console.log(arr[i])
-			}
+  console.log(json);
 }
 
-
+// run program
 main();
