@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "app": "node ./src/main.js",
-    "test": "mocha --reporter list",
+    "test": "mocha --reporter list && echo OK",
     "lint": "npx eslint ./src/**/*.js ./test/**/*.js && echo OK",
     "doc": "rm -rf docs && npx jsdoc src -r -d docs && OK"
   },
