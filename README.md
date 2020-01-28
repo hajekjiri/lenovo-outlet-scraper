@@ -1,6 +1,6 @@
 # Lenovo Outlet Scraper
 ## About
-This is a scraper that fetches laptop deals from the Lenovo US Outlet and returns a JSON with data to stdout.
+This project is a tool that fetches laptop deals from the Lenovo US Outlet and returns a JSON with data to standard output.
 
 ## Getting started
 ### Requirements
@@ -15,7 +15,7 @@ npm install
 ```
 
 ### Running the scraper
-You can either use the incuded `npm-run-script` *app* or run main.js directly.
+You can either use the incuded *app* `npm-run-script` or run main.js directly.
 
 #### Using the `npm-run-script`
 ```
