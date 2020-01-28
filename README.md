@@ -9,7 +9,7 @@ This project is a tool that fetches laptop deals from the Lenovo US Outlet and r
 ### Setup
 Clone the repository and install dependencies.
 ```
-git clone git@github.com:hajekjiri/lenovo-outlet-scraper.git
+git clone https://github.com/hajekjiri/lenovo-outlet-scraper.git
 cd lenovo-outlet-scraper
 npm install
 ```
