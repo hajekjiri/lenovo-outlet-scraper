@@ -82,26 +82,28 @@ async function scrape(nPages) {
         continue;
       }
 
+      // get product's image url
+      let imageUrl = $('div.facetedResults-media a img').attr('src');
+      imageUrl = 'https://www.lenovo.com' + imageUrl;
+      obj['imageUrl'] = imageUrl;
+
       // get pricing
       const oldPrice =
           $('.saleprice.pricingSummary-priceList-value strike').text().trim();
       const newPrice =
           $('.pricingSummary-details-final-price').text().trim();
-      const youSave =
-          $('.saleprice.pricingSummary-priceList-value[itemprop="youSave"]')
-              .text().trim();
       obj['oldPrice'] = parseFloat(oldPrice.substring(1).replace(',', ''));
       obj['newPrice'] = parseFloat(newPrice.substring(1).replace(',', ''));
-      obj['youSave'] = parseFloat(youSave.substring(1).replace(',', ''));
 
       // get product's specs
+      obj['specs'] = {};
       const specs = $('.facetedResults-feature-list dl');
       for (let l = 0; l < specs.length; ++l) {
         // extract spec
         $ = cheerio.load(specs[l]);
-        param = $('dt').text().trim();
+        param = $('dt').text().trim().replace(':', '');
         val = $('dd').text().trim();
-        obj[param] = val;
+        obj['specs'][param] = val;
       }
 
       // push product to product array
@@ -140,8 +142,9 @@ async function main() {
   // scrape products
   const arr = await scrape(nPages);
 
-  // sort by youSave value
-  arr.sort((lhs, rhs) => rhs.youSave - lhs.youSave);
+  // sort by savings
+  arr.sort((lhs, rhs) =>
+    (1 - rhs.newPrice / rhs.oldPrice) - (1 - lhs.newPrice / lhs.oldPrice));
 
   // convert to JSON
   json = JSON.stringify(arr);
