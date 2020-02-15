@@ -87,6 +87,11 @@ async function scrape(nPages) {
       imageUrl = 'https://www.lenovo.com' + imageUrl;
       obj['imageUrl'] = imageUrl;
 
+      // get product's "shop now" url
+      let shopUrl = $('div.facetedResults-footer a').attr('href');
+      shopUrl = 'https://www.lenovo.com' + shopUrl;
+      obj['shopUrl'] = shopUrl;
+
       // get pricing
       const oldPrice =
           $('.saleprice.pricingSummary-priceList-value strike').text().trim();
