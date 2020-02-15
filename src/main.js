@@ -143,8 +143,18 @@ async function main() {
   const arr = await scrape(nPages);
 
   // sort by savings
-  arr.sort((lhs, rhs) =>
-    (1 - rhs.newPrice / rhs.oldPrice) - (1 - lhs.newPrice / lhs.oldPrice));
+  arr.sort((lhs, rhs) => {
+    const rel1 = parseInt(100 * (1 - rhs.newPrice / rhs.oldPrice));
+    const rel2 = parseInt(100 * (1 - lhs.newPrice / lhs.oldPrice));
+    const abs1 = parseInt(rhs.oldPrice - rhs.newPrice);
+    const abs2 = parseInt(lhs.oldPrice - lhs.newPrice);
+
+    if (rel1 !== rel2) {
+      return rel1 - rel2;
+    } else {
+      return abs1 - abs2;
+    }
+  });
 
   // convert to JSON
   json = JSON.stringify(arr);
