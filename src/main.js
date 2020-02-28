@@ -94,14 +94,18 @@ async function scrape(nPages) {
 
       // get pricing
 
-      prices = $('.saleprice').text().replace(/\s/g,"");
-      ind = []
-      for( let k = 0; k < prices.length; ++k )
-        if( prices[k] == '$' )
+      prices = $('.saleprice').text().replace(/\s/g, '');
+      ind = [];
+      for ( let k = 0; k < prices.length; ++k ) {
+        if ( prices[k] == '$' ) {
           ind.push( k );
+        }
+      }
 
-      obj['oldPrice'] = parseFloat(prices.substring( ind[0] + 1, ind[1] ).replace(',', ''));
-      obj['newPrice'] = parseFloat(prices.substring( ind[1] + 1, prices.length ).replace(',', ''));
+      obj['oldPrice'] = parseFloat(
+          prices.substring( ind[0] + 1, ind[1] ).replace(',', ''));
+      obj['newPrice'] = parseFloat(
+          prices.substring( ind[1] + 1, prices.length ).replace(',', ''));
 
 
       // get product's specs
