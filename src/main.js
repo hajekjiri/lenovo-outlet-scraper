@@ -100,8 +100,8 @@ async function scrape(nPages) {
         if( prices[k] == '$' )
           ind.push( k );
 
-      obj['oldPrice'] = prices.substring( ind[0] + 1, ind[1] );
-      obj['newPrice'] = prices.substring( ind[1] + 1, prices.length );
+      obj['oldPrice'] = parseFloat(prices.substring( ind[0] + 1, ind[1] ).replace(',', ''));
+      obj['newPrice'] = parseFloat(prices.substring( ind[1] + 1, prices.length ).replace(',', ''));
 
 
       // get product's specs
