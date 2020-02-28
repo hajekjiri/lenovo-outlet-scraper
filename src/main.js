@@ -110,6 +110,10 @@ async function scrape(nPages) {
         }
       }
 
+      if (ind.length < 2) {
+        continue;
+      }
+
       obj['oldPrice'] = parseFloat(
           prices.substring( ind[0] + 1, ind[1] ).replace(',', ''));
       obj['newPrice'] = parseFloat(
