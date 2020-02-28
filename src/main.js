@@ -69,19 +69,6 @@ async function scrape(nPages) {
       const status = $('.rci-msg').text().trim();
       obj['status'] = status;
 
-      // handle args
-      if (INCLUDE_NEW === false && type === 'New') {
-        continue;
-      }
-
-      if (INCLUDE_REFURBISHED === false && type === 'Refurbished') {
-        continue;
-      }
-
-      if (INCLUDE_OUT_OF_STOCK === false && status === 'Out of Stock') {
-        continue;
-      }
-
       // get product's image url
       let imageUrl = $('div.facetedResults-media a img').attr('src');
       imageUrl = 'https://www.lenovo.com' + imageUrl;
@@ -92,8 +79,29 @@ async function scrape(nPages) {
       shopUrl = 'https://www.lenovo.com' + shopUrl;
       obj['shopUrl'] = shopUrl;
 
-      // get pricing
+      // handle args
+      if (INCLUDE_NEW === false && type === 'New') {
+        continue;
+      }
 
+      if (INCLUDE_REFURBISHED === false && type === 'Refurbished') {
+        continue;
+      }
+
+      if (INCLUDE_OUT_OF_STOCK === false) {
+        if (status === 'Out of Stock') {
+          continue;
+        }
+
+        const r2 = await axios.get(obj['shopUrl']);
+        const $2 = cheerio.load(r2.data);
+        const partNumber = $2('.partNumber').html();
+        if (partNumber === null) {
+          continue;
+        }
+      }
+
+      // get pricing
       prices = $('.saleprice').text().replace(/\s/g, '');
       ind = [];
       for ( let k = 0; k < prices.length; ++k ) {
@@ -106,7 +114,6 @@ async function scrape(nPages) {
           prices.substring( ind[0] + 1, ind[1] ).replace(',', ''));
       obj['newPrice'] = parseFloat(
           prices.substring( ind[1] + 1, prices.length ).replace(',', ''));
-
 
       // get product's specs
       obj['specs'] = {};
