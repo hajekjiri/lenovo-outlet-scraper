@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Lenovo Outlet Scraper",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hajekjiri/lenovo-outlet-scraper"
+  },
   "scripts": {
     "app": "node ./src/main.js",
     "test": "mocha --reporter list && echo OK",
