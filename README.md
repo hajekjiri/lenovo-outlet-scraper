@@ -63,3 +63,8 @@ Documentation can be generated with the *doc* `npm-run-script` using [JSDoc](htt
 ```
 npm run doc
 ```
+
+## Used external modules
+* [axios/axios](https://github.com/axios/axios) is licensed under the [MIT license](https://github.com/axios/axios/blob/master/LICENSE)
+* [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio) is licensed under the [MIT license](https://github.com/cheeriojs/cheerio/blob/master/LICENSE)
+* [yargs/yargs](https://github.com/yargs/yargs) is licensed under the [MIT license](https://github.com/yargs/yargs/blob/master/LICENSE)
